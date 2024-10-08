@@ -56,7 +56,7 @@ jobs:
     steps:
       - name: Deploy to UAT Server
         run: |
-          ssh user@your-uat-server-ip "docker pull smartrenroll:latest && docker-compose up -d"
+          ssh ubuntu@192.168.1.100 "docker pull smartrenroll:latest && docker-compose up -d"
 
   deploy-staging:
     runs-on: ubuntu-latest
@@ -66,7 +66,7 @@ jobs:
     steps:
       - name: Deploy to Staging Server
         run: |
-          ssh user@your-staging-server-ip "docker pull smartrenroll:latest && docker-compose up -d"
+          ssh ubuntu@192.168.1.100 "docker pull smartrenroll:latest && docker-compose up -d"
 
   deploy-production:
     runs-on: ubuntu-latest
@@ -76,4 +76,4 @@ jobs:
     steps:
       - name: Deploy to Production Server
         run: |
-          ssh user@your-production-server-ip "docker pull smartrenroll:latest && docker-compose up -d"
+          ssh ubuntu@192.168.1.100 "docker pull smartrenroll:latest && docker-compose up -d"
