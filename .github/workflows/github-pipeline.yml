@@ -42,8 +42,11 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Install Jest
+        run: npm install --save-dev jest
+
       - name: Run tests
-        run: npm test
+        run: npx test
 
   deploy-uat:
     runs-on: ubuntu-latest
