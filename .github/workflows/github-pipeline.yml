@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - main
+      - staging
+      - uat
   pull_request:
     branches:
       - main
+      - staging
+      - uat
 
 jobs:
   build:
@@ -24,19 +28,52 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build the application
-        run: npx wix-cli dev
-
       - name: Build Docker image
         run: |
           docker build -t smartrenroll:latest .
 
-  deploy:
+  test:
     runs-on: ubuntu-latest
     needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Run tests
+        run: npm test
+
+  deploy-uat:
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    if: github.ref == 'refs/heads/uat'
+
+    steps:
+      - name: Deploy to UAT Server
+        run: |
+          ssh user@your-uat-server-ip "docker pull smartrenroll:latest && docker-compose up -d"
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    if: github.ref == 'refs/heads/staging'
+
+    steps:
+      - name: Deploy to Staging Server
+        run: |
+          ssh user@your-staging-server-ip "docker pull smartrenroll:latest && docker-compose up -d"
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build, test]
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Deploy to Server
+      - name: Deploy to Production Server
         run: |
-          ssh user@your-server-ip "docker pull smartrenroll:latest && docker-compose up -d"
+          ssh user@your-production-server-ip "docker pull smartrenroll:latest && docker-compose up -d"
