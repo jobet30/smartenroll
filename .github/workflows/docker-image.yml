@@ -4,12 +4,9 @@ on:
   push:
     branches: 
       - main
-      - staging
-      - uat
   pull_request:
-      - main
-      - staging
-      - uat
+     branches: 
+      - ["main"]
 
 jobs:
 
