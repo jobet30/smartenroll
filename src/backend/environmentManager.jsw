@@ -1,0 +1,68 @@
+import wixData from 'wix-data';
+
+// Centralized environment configuration object
+const ENV_CONFIG = {
+    Development: {
+        collections: {
+            Name: "Development User",
+            Email: "jobetcasquejo27@hotmail.com",
+            Alias: "jcasquejo27",
+            Username: "jcasquejo27",
+            Password: "123456789"
+        },
+        logging: true
+    },
+    QA: {
+        collections: {
+            Name: "QA User",
+            Email: "jobetcasquejo27@hotmail.com",
+            Alias: "jcasquejo27",
+            Username: "jcasquejo27",
+            Password: "123456789"
+        },
+        logging: true
+    },
+    UAT: {
+        collections: {
+            Name: "UAT User",
+            Email: "jobetcasquejo27@hotmail.com",
+            Alias: "jcasquejo27",
+            Username: "jcasquejo27",
+            Password: "123456789"
+        },
+        logging: true
+    },
+    Staging_PreDeploy: {
+        collections: {
+            Name: "Staging User",
+            Email: "jobetcasquejo27@hotmail.com",
+            Alias: "jcasquejo27",
+            Username: "jcasquejo27",
+            Password: "123456789"
+        },
+        logging: true
+    },
+    Production: {
+        collections: {
+            Name: "Production User",
+            Email: "jobetcasquejo27@hotmail.com",
+            Alias: "jcasquejo27",
+            Username: "jcasquejo27",
+            Password: "123456789"
+        },
+        logging: true
+    }
+};
+
+
+const CURRENT_ENV = "Development";
+
+// Example function to log user details based on the current environment
+function logUserDetails() {
+    const userDetails = ENV_CONFIG[CURRENT_ENV].collections;
+    console.log(`Current Environment: ${CURRENT_ENV}`);
+    console.log(`User Details: `, userDetails);
+}
+
+// Call the function to log user details
+logUserDetails();
