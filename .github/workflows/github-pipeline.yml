@@ -4,13 +4,17 @@ on:
   push:
     branches:
       - main
-      - staging
+      - qa
       - uat
+      - staging
+      - production
   pull_request:
     branches:
       - main
-      - staging
+      - qa
       - uat
+      - staging
+      - production
 
 jobs:
   build:
@@ -26,8 +30,7 @@ jobs:
           node-version: '18'
 
       - name: Build Docker image
-        run: |
-          docker build -t smartrenroll:latest .
+        run: docker build -t smartrenroll:latest .
 
   test:
     runs-on: ubuntu-latest
@@ -39,41 +42,88 @@ jobs:
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
-        with:
-          node-version: '18'
-
-      - name: Install Jest
-        run: npm install --save-dev jest
 
       - name: Run tests
         run: npm test
 
+  check-collection-status:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Check Collection Status
+        id: check
+        run: |
+          node checkCollectionStatus.js "${{ github.ref }}"
+
+      - name: Set Output for Collection Status
+        run: |
+          collection_ready=${cat output.txt}
+          echo "collection_ready=$collection_ready" >> $GITHUB_ENV
+
+  deploy-qa:
+    runs-on: ubuntu-latest
+    needs: [check-collection-status]
+    if: github.ref == 'refs/heads/qa' && env.collection_ready == 'true'
+    environment: QA
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to QA Server
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@192.168.1.100 "docker pull smartrenroll:latest && docker-compose up -d"
+
   deploy-uat:
     runs-on: ubuntu-latest
-    needs: [build, test]
-    if: github.ref == 'refs/heads/uat'
+    needs: [check-collection-status]
+    if: github.ref == 'refs/heads/uat' && env.collection_ready == 'true'
+    environment: UAT
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Deploy to UAT Server
         run: |
-          ssh user@your-uat-server-ip "docker pull smartrenroll:latest && docker-compose up -d"
+          ssh -o StrictHostKeyChecking=no ubuntu@192.168.1.100 "docker pull smart::latest && docker-compose up -d"
 
-  deploy-staging:
-    runs-on: ubuntu-latest
-    needs: [build, test]
-    if: github.ref == 'refs/heads/staging'
+    deploy-staging:
+      runs-on: ubuntu-latest
+      needs: [check-collection-status]
+      if: github.ref == 'refs/heads/staging' && env.collection_ready == 'true'
+      environment: STG
 
-    steps:
-      - name: Deploy to Staging Server
-        run: |
-          ssh user@your-staging-server-ip "docker pull smartrenroll:latest && docker-compose up -d"
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
 
-  deploy-production:
-    runs-on: ubuntu-latest
-    needs: [build, test]
-    if: github.ref == 'refs/heads/main'
+        - name: Deploy to Staging Server
+          run: |
+            ssh -o StrictHostKeyChecking=no ubuntu@192.168.1.100 "docker pull smart::latest && docker-compose up -d"
 
-    steps:
-      - name: Deploy to Production Server
-        run: |
-          ssh user@your-production-server-ip "docker pull smartrenroll:latest && docker-compose up -d"
+
+      deploy-production:
+        runs-on: ubuntu-latest
+        needs: [check-collection-status]
+        if: github.ref == 'refs/heads/production' && env.collection_ready == 'true'
+        environment: PROD
+
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v2
+
+          - name: Deploy to Production Server
+            run: |
+              ssh -o StrictHostKeyChecking=no ubuntu@192.168.1.100 "docker pull smart::latest && docker-compose up -d"
+
+
+      
